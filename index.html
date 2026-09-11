@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>萌宠角色图鉴 · 可编辑版</title>
+<title>萌宠角色图鉴</title>
+<script src="config.js"></script>
 <style>
   :root{
     --bg:#FFF8F0;
@@ -303,28 +304,54 @@
     position:absolute;left:4px;top:4px;background:var(--brand);color:#fff;
     font-size:9px;padding:2px 6px;border-radius:6px;font-weight:800;letter-spacing:.5px;
   }
+
+  /* ---------- 只读模式（默认） ---------- */
+  body.ro [data-edit-only]{display:none !important;}
+  body.ro #overlay .modal-body input[type=text],
+  body.ro #overlay .modal-body textarea{
+    background:transparent;border-color:transparent;box-shadow:none;
+    padding-left:0;padding-right:0;cursor:default;color:var(--ink);
+  }
+  body.ro #overlay .modal-body textarea{resize:none;}
+  body.ro .swatch{cursor:default;}
+  body.ro .swatch:hover{transform:none;}
+  .lock-tip{
+    display:inline-flex;align-items:center;gap:5px;
+    background:rgba(255,255,255,.7);border-radius:999px;
+    padding:3px 10px;font-size:11px;font-weight:700;color:var(--muted);
+  }
+  .gate-box{text-align:center;padding:8px 4px 2px;}
+  .gate-box p{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.7;}
+  .gate-box input{
+    width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:12px;
+    font-size:15px;font-family:inherit;color:var(--ink);background:#FFFDFB;outline:none;
+    text-align:center;letter-spacing:1px;
+  }
+  .gate-box input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,154,118,.16);}
+  .gate-err{color:#C0392B;font-size:12.5px;font-weight:700;margin:10px 0 0;min-height:18px;}
 </style>
 </head>
-<body>
+<body class="ro">
 
 <header class="hero">
   <h1>🌟 萌宠角色图鉴 🌟</h1>
-  <p>点开任意一只 → 查看完整资料并编辑 · 数据保存在你的浏览器里，刷新不丢失</p>
+  <p id="heroSub">点开任意一只 → 查看完整资料</p>
 </header>
 
 <div class="toolbar">
   <input id="search" class="search" type="text" placeholder="🔍 搜索名字 / 物种 / 性格…">
-  <button class="btn primary" id="btnAdd">➕ 新增角色</button>
-  <button class="btn" id="btnExport">⬇️ 导出 JSON</button>
-  <button class="btn" id="btnImport">⬆️ 导入 JSON</button>
-  <button class="btn danger" id="btnReset">↺ 恢复默认</button>
+  <button class="btn primary" id="btnGate">🔒 编辑</button>
+  <button class="btn" id="btnExport" data-edit-only>⬇️ 导出 JSON</button>
+  <button class="btn primary" id="btnAdd" data-edit-only>➕ 新增角色</button>
+  <button class="btn" id="btnImport" data-edit-only>⬆️ 导入 JSON</button>
+  <button class="btn danger" id="btnReset" data-edit-only>↺ 恢复默认</button>
   <input type="file" id="fileInput" accept="application/json,.json" style="display:none">
   <input type="file" id="avatarInput" accept="image/*" multiple style="display:none">
 </div>
 
 <main>
   <div class="grid" id="grid"></div>
-  <footer>🌸 每一只都值得被温柔以待 🌸<br>数据存于本机浏览器（localStorage），换设备请用导出 / 导入</footer>
+  <footer id="footNote">🌸 每一只都值得被温柔以待 🌸<br>当前是浏览模式</footer>
 </main>
 
 <div class="overlay" id="overlay">
@@ -441,7 +468,7 @@
       </div>
       <div class="field">
         <div class="gallery-grid" id="galleryGrid"></div>
-        <div class="g-add">
+        <div class="g-add" data-edit-only>
           <input type="text" id="gInput" placeholder="粘贴图片路径或网址后回车，如 images/团团/01.jpg">
           <button class="btn primary" id="btnAddImg" type="button">添加</button>
         </div>
@@ -452,10 +479,10 @@
 
     </div>
     <div class="modal-foot">
-      <button class="btn danger" id="btnDelete">🗑 删除这只</button>
+      <button class="btn danger" id="btnDelete" data-edit-only>🗑 删除这只</button>
       <div style="display:flex;gap:10px;">
-        <button class="btn" id="btnCancel">取消</button>
-        <button class="btn primary" id="btnSave">💾 保存</button>
+        <button class="btn" id="btnCancel">关闭</button>
+        <button class="btn primary" id="btnSave" data-edit-only>💾 保存</button>
       </div>
     </div>
   </div>
@@ -467,6 +494,29 @@
   <div class="lb-actions">
     <button class="lb-btn" id="lbSetAvatar" type="button">🌟 设为头像</button>
     <button class="lb-btn" id="lbRemove" type="button" style="display:none">🗑 删除这张</button>
+  </div>
+</div>
+
+<div class="overlay" id="gate">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head">
+      <h2>🔒 输入编辑密钥</h2>
+      <button class="btn" id="gateClose" style="padding:6px 14px;">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="gate-box">
+        <p>这个页面默认是只读的。<br>输入密钥后即可打开编辑功能。</p>
+        <input type="text" id="gateInput" placeholder="编辑密钥" autocomplete="off">
+        <p class="gate-err" id="gateErr"></p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span></span>
+      <div style="display:flex;gap:10px;">
+        <button class="btn" id="gateCancel">取消</button>
+        <button class="btn primary" id="gateOk">解锁</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -760,13 +810,13 @@ function render(){
   }
 
   grid.innerHTML = list.map(c => {
-    const avatar = avatarInner(c, {cam:true});
+    const avatar = avatarInner(c, {cam:canEdit});
     const sub = [c.species, c.gender].filter(Boolean).join(' · ') || '物种未填';
     const lk = lines(c.likes);
     const likeTxt = lk.length ? lk.slice(0, 3).join('、') + (lk.length > 3 ? ' …' : '') : '';
     return `
     <div class="card" style="background:${accentCss(c.accent)}" data-id="${esc(c.id)}">
-      <button class="edit-hint" data-edit="${esc(c.id)}">详情 ✏️</button>
+      <button class="edit-hint" data-edit="${esc(c.id)}">${canEdit ? '详情 ✏️' : '详情'}</button>
       <div class="avatar" data-edit="${esc(c.id)}">${avatar}</div>
       <h3 class="char-name">${esc(c.name || '未命名')}</h3>
       <p class="char-sub">${esc(sub)}</p>
@@ -823,7 +873,7 @@ function renderGallery(){
         ${c.avatarSrc === it.src ? '<span class="avatar-now">头像</span>' : ''}
         ${it.repo
           ? '<span class="repo-badge">仓库</span>'
-          : `<button class="g-del" type="button" data-src="${esc(it.src)}" title="移除">✕</button>`}
+          : (canEdit ? `<button class="g-del" type="button" data-src="${esc(it.src)}" title="移除">✕</button>` : '')}
       </div>`).join('')
     : `<div style="grid-column:1/-1;color:#BDAE9F;font-size:13px;padding:4px 0 2px;">
          还没有照片 🐾 点上面的头像上传，或把图片放进 <b>images/${esc(dir)}/</b> 推送上来。
@@ -845,7 +895,8 @@ function openLightbox(src, removable, charId){
   lbSrc = src;
   lbCharId = charId || editingId;
   $('lightboxImg').src = resolveSrc(src) || src;
-  $('lbRemove').style.display = removable ? '' : 'none';
+  $('lbRemove').style.display = (removable && canEdit) ? '' : 'none';
+  $('lbSetAvatar').style.display = canEdit ? '' : 'none';
   $('lightbox').classList.add('open');
 }
 function closeLightbox(){ $('lightbox').classList.remove('open'); }
@@ -871,11 +922,13 @@ async function removeImg(c, src){
 /* 从头像上传照片 */
 let uploadTargetId = null;
 function startUpload(id){
+  if(!canEdit) return;
   uploadTargetId = id;
   $('avatarInput').value = '';
   $('avatarInput').click();
 }
 async function handleUpload(files){
+  if(!canEdit) return;
   const c = chars.find(x => x.id === uploadTargetId);
   if(!c || !files || !files.length) return;
   const imgs = [...files].filter(f => f.type && f.type.indexOf('image/') === 0);
@@ -933,11 +986,12 @@ function openEditor(id){
   if(!c) return;
   editingId = id;
   $('modalTitle').textContent = c.name || '未命名';
-  $('modalAvatar').innerHTML = avatarInner(c, {cam:true, clear:true});
+  $('modalAvatar').innerHTML = avatarInner(c, {cam:canEdit, clear:canEdit});
   FIELDS.forEach(f => { const el = $('f_' + f); if(el) el.value = c[f] || ''; });
   pendingAccent = c.accent || 'peach';
   buildSwatches();
   renderGallery();
+  applyReadonly();
   $('overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   setTimeout(() => $('f_name').focus(), 60);
@@ -948,6 +1002,7 @@ function closeEditor(){
   editingId = null;
 }
 function saveEditor(){
+  if(!canEdit) return;
   const c = chars.find(x => x.id === editingId);
   if(!c) return;
   FIELDS.forEach(f => { const el = $('f_' + f); if(el) c[f] = el.value.trim(); });
@@ -957,8 +1012,70 @@ function saveEditor(){
   closeEditor();
 }
 
+/* ============ 编辑权限（默认只读，密钥解锁） ============ */
+const EDIT_FLAG = 'moe_edit_token_v1';
+let canEdit = false;
+
+function cfg(){ return window.MOE_EDIT || {}; }
+
+async function sha256(str){
+  const buf = new TextEncoder().encode(String(str));
+  const d = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(d)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* 用户输入 -> 与配置里的哈希比对 */
+async function checkKey(input){
+  const c = cfg();
+  if(!c.hash || !input) return false;
+  try{
+    return (await sha256(String(c.salt || '') + input)) === c.hash;
+  }catch(e){
+    return false;
+  }
+}
+
+/* 让弹窗里的输入控件随权限切换可写 / 只读 */
+function applyReadonly(){
+  document.querySelectorAll('#overlay .modal-body input, #overlay .modal-body textarea').forEach(el => {
+    el.readOnly = !canEdit;
+  });
+}
+
+function setEdit(on, silent){
+  canEdit = on;
+  document.body.classList.toggle('ro', !on);
+
+  const g = $('btnGate');
+  g.textContent = on ? '🔓 编辑中 · 锁定' : '🔒 编辑';
+  g.classList.toggle('primary', !on);
+
+  $('heroSub').textContent = on
+    ? '点开任意一只 → 编辑资料 · 改动保存在本机浏览器，刷新不丢失'
+    : '点开任意一只 → 查看完整资料';
+  $('footNote').innerHTML = on
+    ? '🌸 每一只都值得被温柔以待 🌸<br>编辑模式 · 改动只存在这台设备的浏览器里'
+    : '🌸 每一只都值得被温柔以待 🌸<br>当前是浏览模式';
+
+  applyReadonly();
+  render();
+  if(!silent && on) toast('已进入编辑模式 🔓');
+}
+
+async function unlockWith(input){
+  if(await checkKey(input)){
+    try{ localStorage.setItem(EDIT_FLAG, cfg().hash); }catch(e){}
+    $('gate').classList.remove('open');
+    $('gateErr').textContent = '';
+    setEdit(true);
+    return true;
+  }
+  return false;
+}
+
 /* ============ 事件 ============ */
 $('btnAdd').addEventListener('click', () => {
+  if(!canEdit) return;
   const c = {
     id: 'c_' + Date.now().toString(36),
     name:'新角色', selfName:'', gender:'', species:'',
@@ -975,6 +1092,7 @@ $('btnAdd').addEventListener('click', () => {
 });
 
 $('btnDelete').addEventListener('click', () => {
+  if(!canEdit) return;
   const c = chars.find(x => x.id === editingId);
   if(!c) return;
   if(!confirm(`确定要删除「${c.name || '未命名'}」吗？此操作不可撤销。`)) return;
@@ -992,15 +1110,20 @@ $('overlay').addEventListener('click', e => { if(e.target === $('overlay')) clos
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){
     if($('lightbox').classList.contains('open')) closeLightbox();
+    else if($('gate').classList.contains('open')) $('gate').classList.remove('open');
     else if($('overlay').classList.contains('open')) closeEditor();
   }
   if((e.ctrlKey || e.metaKey) && e.key === 's' && $('overlay').classList.contains('open')){
     e.preventDefault(); saveEditor();
   }
+  if(e.key === 'Enter' && $('gate').classList.contains('open')){
+    e.preventDefault(); submitGate();
+  }
 });
 
 // 图像库：添加 / 放大 / 目录名提示
 function addImg(){
+  if(!canEdit) return;
   const v = $('gInput').value.trim();
   if(!v) return;
   const c = chars.find(x => x.id === editingId);
@@ -1022,10 +1145,11 @@ $('f_slug').addEventListener('input', e => {
 
 // 头像上传
 $('avatarInput').addEventListener('change', e => {
-  handleUpload(e.target.files);
+  if(canEdit) handleUpload(e.target.files);
   e.target.value = '';
 });
 $('modalAvatar').addEventListener('click', e => {
+  if(!canEdit) return;
   const clearBtn = e.target.closest('[data-clearia]');
   if(clearBtn){
     const c = chars.find(x => x.id === clearBtn.dataset.clearia);
@@ -1043,6 +1167,7 @@ $('modalAvatar').addEventListener('click', e => {
 // 大图：设为头像 / 删除
 $('lbSetAvatar').addEventListener('click', e => {
   e.stopPropagation();
+  if(!canEdit) return;
   const c = chars.find(x => x.id === lbCharId);
   if(!c) return;
   c.avatarSrc = lbSrc;
@@ -1057,6 +1182,7 @@ $('lbSetAvatar').addEventListener('click', e => {
 });
 $('lbRemove').addEventListener('click', async e => {
   e.stopPropagation();
+  if(!canEdit) return;
   const c = chars.find(x => x.id === lbCharId);
   if(!c) return;
   await removeImg(c, lbSrc);
@@ -1081,8 +1207,9 @@ $('btnExport').addEventListener('click', () => {
   toast('已导出 JSON');
 });
 
-$('btnImport').addEventListener('click', () => $('fileInput').click());
+$('btnImport').addEventListener('click', () => { if(canEdit) $('fileInput').click(); });
 $('fileInput').addEventListener('change', e => {
+  if(!canEdit){ e.target.value = ''; return; }
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
@@ -1102,14 +1229,60 @@ $('fileInput').addEventListener('change', e => {
 });
 
 $('btnReset').addEventListener('click', () => {
+  if(!canEdit) return;
   if(!confirm('恢复为初始的六只小家伙？你现在的修改会被覆盖。')) return;
   chars = clone(DEFAULTS);
   save(); render(); toast('已恢复默认');
 });
 
-render();
+/* ---- 解锁 / 锁定 ---- */
+$('btnGate').addEventListener('click', () => {
+  if(canEdit){
+    try{ localStorage.removeItem(EDIT_FLAG); }catch(e){}
+    setEdit(false);
+    toast('已锁定 🔒');
+  }else{
+    $('gateInput').value = '';
+    $('gateErr').textContent = '';
+    $('gate').classList.add('open');
+    setTimeout(() => $('gateInput').focus(), 60);
+  }
+});
+$('gateClose').addEventListener('click', () => $('gate').classList.remove('open'));
+$('gateCancel').addEventListener('click', () => $('gate').classList.remove('open'));
+$('gate').addEventListener('click', e => { if(e.target === $('gate')) $('gate').classList.remove('open'); });
+$('gateOk').addEventListener('click', submitGate);
+
+async function submitGate(){
+  const v = $('gateInput').value.trim();
+  if(!v) return;
+  if(await unlockWith(v)) return;
+  $('gateErr').textContent = '密钥不对 🐾';
+  $('gateInput').select();
+}
+
+/* ---- 启动 ---- */
+setEdit(false, true);
 loadManifest();
 loadLocalImages();
+
+/* 用 ?edit=密钥 打开一次即解锁，之后本机直接打开都是编辑模式 */
+(async function init(){
+  const key = new URLSearchParams(location.search).get('edit');
+  if(key){
+    if(await unlockWith(key)){
+      try{ history.replaceState(null, '', location.pathname + location.hash); }catch(e){}
+      return;
+    }
+    toast('密钥不对 🐾');
+    return;
+  }
+  try{
+    if(localStorage.getItem(EDIT_FLAG) && localStorage.getItem(EDIT_FLAG) === cfg().hash){
+      setEdit(true, true);
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
