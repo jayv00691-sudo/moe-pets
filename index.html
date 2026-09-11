@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>萌宠角色图鉴 · 可编辑版</title>
+<style>
+  :root{
+    --bg:#FFF8F0;
+    --card:#FFFFFF;
+    --ink:#4A3B32;
+    --muted:#9A8878;
+    --line:#F1E3D3;
+    --brand:#FF9A76;
+    --brand2:#FFC978;
+    --shadow:0 10px 30px rgba(180,140,110,.14);
+    --shadow-lg:0 24px 60px rgba(180,140,110,.22);
+    --radius:24px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+  button{font-family:inherit;}
+
+  /* ---------- Header ---------- */
+  header.hero{
+    text-align:center;
+    padding:48px 20px 28px;
+  }
+  .hero h1{
+    margin:0 0 8px;
+    font-size:clamp(30px,5vw,46px);
+    letter-spacing:2px;
+    font-weight:800;
+  }
+  .hero p{margin:0;color:var(--muted);font-size:15px;}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    max-width:1240px;margin:0 auto;padding:0 20px 8px;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;
+  }
+  .btn{
+    border:1px solid var(--line);
+    background:#fff;color:var(--ink);
+    padding:9px 16px;border-radius:999px;
+    font-size:14px;font-weight:600;cursor:pointer;
+    transition:transform .15s ease, box-shadow .2s ease, background .2s ease;
+    box-shadow:0 2px 6px rgba(180,140,110,.08);
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+  .btn:active{transform:translateY(0);}
+  .btn.primary{
+    background:linear-gradient(135deg,var(--brand),var(--brand2));
+    color:#fff;border-color:transparent;
+  }
+  .btn.danger{color:#C0392B;border-color:#F5D5D0;}
+  .search{
+    padding:9px 16px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;font-size:14px;min-width:200px;color:var(--ink);outline:none;
+  }
+  .search:focus{border-color:var(--brand);}
+
+  /* ---------- Grid ---------- */
+  main{max-width:1240px;margin:0 auto;padding:12px 20px 60px;}
+  .grid{
+    display:grid;gap:24px;
+    grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+  }
+  .card{
+    position:relative;
+    border-radius:var(--radius);
+    padding:22px;
+    box-shadow:var(--shadow);
+    transition:transform .28s ease, box-shadow .28s ease;
+    overflow:hidden;
+  }
+  .card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);}
+  .card .edit-hint{
+    position:absolute;top:14px;right:14px;
+    background:rgba(255,255,255,.9);
+    border:none;border-radius:999px;
+    padding:6px 12px;font-size:12px;font-weight:700;color:var(--muted);
+    cursor:pointer;opacity:0;transition:opacity .2s ease;
+  }
+  .card:hover .edit-hint{opacity:1;}
+  .card .edit-hint:hover{color:var(--brand);}
+
+  .avatar{
+    position:relative;
+    width:112px;height:112px;border-radius:50%;
+    background:rgba(255,255,255,.75);
+    border:4px solid #fff;
+    margin:0 auto 12px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 18px rgba(180,140,110,.18);
+    font-size:52px;
+  }
+  .avatar svg{width:84px;height:84px;}
+  .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+
+  /* 头像右下角的上传角标 */
+  .cam{
+    position:absolute;right:-4px;bottom:-4px;
+    width:32px;height:32px;border-radius:50%;
+    border:2px solid #fff;background:#fff;padding:0;line-height:1;
+    font-size:15px;cursor:pointer;
+    box-shadow:0 3px 10px rgba(140,100,70,.28);
+    opacity:0;transition:opacity .2s ease, transform .15s ease;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card:hover .cam,.avatar:hover .cam,.avatar-sm:hover .cam{opacity:1;}
+  .cam:hover{transform:scale(1.15);}
+  .cam.clear{right:auto;left:-4px;width:24px;height:24px;font-size:10px;color:#C0392B;}
+
+  .char-name{
+    text-align:center;font-size:22px;font-weight:800;margin:0 0 2px;
+  }
+  .char-sub{
+    text-align:center;color:var(--muted);font-size:13px;margin:0 0 3px;
+  }
+  .char-self{
+    text-align:center;color:#BCA894;font-size:12px;margin:0 0 10px;
+  }
+  .char-self b{color:var(--muted);font-weight:700;}
+  .meta-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .chip{
+    background:rgba(255,255,255,.85);
+    border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;
+    color:#6B5B4D;
+  }
+  .tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px;}
+  .tag{
+    background:rgba(255,255,255,.9);
+    border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;color:#7A6555;
+  }
+
+  .panel{
+    background:rgba(255,255,255,.72);
+    border-radius:18px;padding:14px 16px;font-size:13.5px;
+  }
+  .panel + .panel{margin-top:10px;}
+  .row{display:flex;gap:8px;padding:4px 0;}
+  .row .k{flex:0 0 66px;color:var(--muted);font-weight:700;}
+  .row .v{flex:1;word-break:break-word;}
+  .quote{color:#B4593C;font-weight:700;}
+  .empty{color:#BDAE9F;font-style:italic;}
+  .list{margin:0;padding-left:18px;}
+  .list li{margin:2px 0;}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(60,42,32,.45);
+    backdrop-filter:blur(3px);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:40px 16px;overflow-y:auto;z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:var(--card);border-radius:22px;width:100%;max-width:660px;
+    box-shadow:0 30px 80px rgba(80,50,30,.3);
+    animation:pop .22s ease;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98);}to{opacity:1;transform:none;}}
+  .modal-head{
+    padding:20px 24px;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .modal-head h2{margin:0;font-size:19px;}
+  .head-left{display:flex;align-items:center;gap:12px;min-width:0;}
+  .head-left h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .avatar-sm{
+    position:relative;flex:0 0 60px;width:60px;height:60px;border-radius:50%;
+    background:linear-gradient(135deg,#FFF3E6,#FFE0CC);
+    display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;
+    cursor:pointer;
+  }
+  .avatar-sm svg{width:44px;height:44px;}
+  .avatar-sm img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+  .avatar-sm .cam{width:24px;height:24px;font-size:11px;right:-2px;bottom:-2px;opacity:0;}
+  .avatar-sm:hover .cam{opacity:1;}
+  .modal-body{padding:20px 24px;max-height:none;}
+  .modal-foot{
+    padding:16px 24px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:10px;
+    position:sticky;bottom:0;background:#fff;border-radius:0 0 22px 22px;
+  }
+
+  .sec-title{
+    font-size:12px;font-weight:800;color:var(--brand);
+    letter-spacing:1px;margin:18px 0 10px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .sec-title::after{content:"";flex:1;height:1px;background:var(--line);}
+  .sec-title:first-child{margin-top:0;}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px;}
+  .field .tip{font-weight:400;color:#B9A899;}
+  .field input[type=text],
+  .field textarea,
+  .field select{
+    width:100%;padding:10px 12px;border:1px solid var(--line);
+    border-radius:12px;font-size:14px;font-family:inherit;color:var(--ink);
+    background:#FFFDFB;outline:none;transition:border-color .18s, box-shadow .18s;
+  }
+  .field input[type=text]:focus,
+  .field textarea:focus,
+  .field select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,154,118,.16);}
+  .field textarea{resize:vertical;min-height:62px;line-height:1.6;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr;}}
+
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;}
+  .swatch{
+    width:32px;height:32px;border-radius:50%;border:3px solid transparent;cursor:pointer;
+    transition:transform .15s;
+  }
+  .swatch:hover{transform:scale(1.1);}
+  .swatch.sel{border-color:#fff;box-shadow:0 0 0 2px var(--brand);}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);
+    background:#4A3B32;color:#fff;padding:11px 22px;border-radius:999px;
+    font-size:14px;font-weight:600;opacity:0;pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;z-index:99;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+
+  footer{text-align:center;color:#C4B4A4;font-size:13px;padding:8px 0 40px;}
+  .kbd{background:rgba(0,0,0,.06);border-radius:5px;padding:1px 5px;font-size:12px;}
+
+  /* ---------- 图像库 ---------- */
+  .thumbs{display:flex;gap:6px;justify-content:center;margin:0 0 12px;flex-wrap:wrap;}
+  .thumb{
+    width:46px;height:46px;border-radius:12px;object-fit:cover;cursor:pointer;
+    border:2px solid #fff;box-shadow:0 2px 6px rgba(180,140,110,.2);
+    transition:transform .18s ease;background:#fff;
+  }
+  .thumb:hover{transform:scale(1.12);}
+  .thumb.more{
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;color:var(--muted);background:rgba(255,255,255,.75);
+  }
+
+  .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px;}
+  .g-item{position:relative;}
+  .g-item img{
+    width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;cursor:zoom-in;
+    border:1px solid var(--line);background:#fff;display:block;
+  }
+  .g-del{
+    position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+    border:none;background:#fff;color:#C0392B;font-size:11px;font-weight:800;cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,.18);line-height:1;padding:0;
+  }
+  .repo-badge{
+    position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.45);color:#fff;
+    font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;letter-spacing:.5px;
+  }
+  .g-add{display:flex;gap:8px;margin-top:12px;}
+  .g-add input{
+    flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:12px;
+    font-size:14px;font-family:inherit;color:var(--ink);background:#FFFDFB;outline:none;
+  }
+  .g-add input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(255,154,118,.16);}
+  .g-hint{font-size:12px;color:#B9A899;margin:10px 0 0;line-height:1.7;}
+  .g-hint code{background:#F6EEE6;padding:1px 5px;border-radius:5px;}
+
+  .lightbox{
+    position:fixed;inset:0;background:rgba(30,20,15,.9);z-index:100;
+    display:none;align-items:center;justify-content:center;padding:40px;cursor:zoom-out;
+  }
+  .lightbox.open{display:flex;}
+  .lightbox img{
+    max-width:100%;max-height:100%;border-radius:14px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);cursor:default;
+  }
+  .lightbox .lb-close{
+    position:absolute;top:16px;right:24px;color:#fff;font-size:30px;
+    cursor:pointer;opacity:.75;line-height:1;
+  }
+  .lightbox .lb-close:hover{opacity:1;}
+  .lb-actions{
+    position:absolute;bottom:26px;left:50%;transform:translateX(-50%);
+    display:flex;gap:10px;
+  }
+  .lb-btn{
+    background:rgba(255,255,255,.94);border:none;border-radius:999px;
+    padding:9px 20px;font-size:14px;font-weight:700;color:var(--ink);
+    cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.28);font-family:inherit;
+    transition:transform .15s ease;
+  }
+  .lb-btn:hover{background:#fff;transform:translateY(-2px);}
+  .avatar-now{
+    position:absolute;left:4px;top:4px;background:var(--brand);color:#fff;
+    font-size:9px;padding:2px 6px;border-radius:6px;font-weight:800;letter-spacing:.5px;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>🌟 萌宠角色图鉴 🌟</h1>
+  <p>点开任意一只 → 查看完整资料并编辑 · 数据保存在你的浏览器里，刷新不丢失</p>
+</header>
+
+<div class="toolbar">
+  <input id="search" class="search" type="text" placeholder="🔍 搜索名字 / 物种 / 性格…">
+  <button class="btn primary" id="btnAdd">➕ 新增角色</button>
+  <button class="btn" id="btnExport">⬇️ 导出 JSON</button>
+  <button class="btn" id="btnImport">⬆️ 导入 JSON</button>
+  <button class="btn danger" id="btnReset">↺ 恢复默认</button>
+  <input type="file" id="fileInput" accept="application/json,.json" style="display:none">
+  <input type="file" id="avatarInput" accept="image/*" multiple style="display:none">
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <footer>🌸 每一只都值得被温柔以待 🌸<br>数据存于本机浏览器（localStorage），换设备请用导出 / 导入</footer>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="head-left">
+        <div class="avatar-sm" id="modalAvatar">🐾</div>
+        <h2 id="modalTitle">资料详情</h2>
+      </div>
+      <button class="btn" id="btnClose" style="padding:6px 14px;">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="sec-title">基本信息</div>
+      <div class="grid2">
+        <div class="field">
+          <label>名字</label>
+          <input type="text" id="f_name" placeholder="例如：团团">
+        </div>
+        <div class="field">
+          <label>自称 <span class="tip">（它怎么称呼自己）</span></label>
+          <input type="text" id="f_selfName" placeholder="例如：本喵 / 团团">
+        </div>
+        <div class="field">
+          <label>性别</label>
+          <input type="text" id="f_gender" list="genderList" placeholder="男宝宝 / 女宝宝">
+          <datalist id="genderList">
+            <option value="男宝宝"></option>
+            <option value="女宝宝"></option>
+            <option value="男孩子"></option>
+            <option value="女孩子"></option>
+            <option value="未知"></option>
+          </datalist>
+        </div>
+        <div class="field">
+          <label>物种</label>
+          <input type="text" id="f_species" placeholder="例如：矮脚小奶猫">
+        </div>
+      </div>
+
+      <div class="sec-title">头像与配色</div>
+      <div class="grid2">
+        <div class="field">
+          <label>代表表情 <span class="tip">（没有专属画像时用 Emoji）</span></label>
+          <input type="text" id="f_emoji" placeholder="🐱">
+        </div>
+        <div class="field">
+          <label>卡片配色</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+      </div>
+
+      <div class="sec-title">性格特征</div>
+      <div class="field">
+        <label>一行一个标签</label>
+        <textarea id="f_personality" placeholder="软萌胆小&#10;敏感爱哭&#10;嘴硬逞强"></textarea>
+      </div>
+
+      <div class="sec-title">口头禅与叫声</div>
+      <div class="grid2">
+        <div class="field">
+          <label>口头禅</label>
+          <input type="text" id="f_catchphrase" placeholder="咪咬你啦！">
+        </div>
+        <div class="field">
+          <label>叫声</label>
+          <input type="text" id="f_sound" placeholder="喵~ / 汪！ / 吱！">
+        </div>
+      </div>
+      <div class="field">
+        <label>专属 Emoji / 招牌表情</label>
+        <input type="text" id="f_emojiSet" placeholder="🐱🍑📦✨💭">
+      </div>
+
+      <div class="sec-title">喜恶</div>
+      <div class="grid2">
+        <div class="field">
+          <label>❤️ 喜欢（一行一个）</label>
+          <textarea id="f_likes" placeholder="橘子&#10;躲在角落缩成团"></textarea>
+        </div>
+        <div class="field">
+          <label>💢 讨厌（一行一个）</label>
+          <textarea id="f_dislikes" placeholder="洗澡&#10;大声喧哗"></textarea>
+        </div>
+      </div>
+
+      <div class="sec-title">特殊行为</div>
+      <div class="field">
+        <label>一行一个小动作 / 小习惯</label>
+        <textarea id="f_behaviors" placeholder="害怕时缩成一个球&#10;被摸头会呼噜"></textarea>
+      </div>
+
+      <div class="sec-title">外观形象</div>
+      <div class="field">
+        <label>毛色、体型、五官等描述</label>
+        <textarea id="f_appearance" placeholder="奶油色短毛，圆脸大眼，四条小短腿"></textarea>
+      </div>
+
+      <div class="sec-title">专属配饰</div>
+      <div class="field">
+        <label>项圈、发夹、小衣服等</label>
+        <textarea id="f_accessories" placeholder="虎纹小帽子（上面有个「王」字）"></textarea>
+      </div>
+
+      <div class="sec-title">📷 图像库</div>
+      <div class="grid2">
+        <div class="field">
+          <label>图片目录名 <span class="tip">（仓库里的文件夹）</span></label>
+          <input type="text" id="f_slug" placeholder="tuantuan">
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end;">
+          <p class="g-hint" style="margin:0 0 10px;">照片放 <code>images/<b id="slugHint">—</b>/</code></p>
+        </div>
+      </div>
+      <div class="field">
+        <div class="gallery-grid" id="galleryGrid"></div>
+        <div class="g-add">
+          <input type="text" id="gInput" placeholder="粘贴图片路径或网址后回车，如 images/团团/01.jpg">
+          <button class="btn primary" id="btnAddImg" type="button">添加</button>
+        </div>
+        <p class="g-hint">
+          💡 最省事的做法：把照片丢进仓库的 <code>images/&lt;目录名&gt;/</code> 里推上去，GitHub Action 会自动生成清单，刷新页面就能看到 —— 不用在这里手动添加。
+        </p>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" id="btnDelete">🗑 删除这只</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn" id="btnCancel">取消</button>
+        <button class="btn primary" id="btnSave">💾 保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <span class="lb-close" id="lbClose">✕</span>
+  <img id="lightboxImg" alt="">
+  <div class="lb-actions">
+    <button class="lb-btn" id="lbSetAvatar" type="button">🌟 设为头像</button>
+    <button class="lb-btn" id="lbRemove" type="button" style="display:none">🗑 删除这张</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 配色 ============ */
+const ACCENTS = [
+  {id:'peach',  css:'linear-gradient(135deg,#FFF5E6 0%,#FFE4C4 100%)'},
+  {id:'pink',   css:'linear-gradient(135deg,#FFF0F5 0%,#FFE4E1 100%)'},
+  {id:'honey',  css:'linear-gradient(135deg,#FFF8DC 0%,#FAEBD7 100%)'},
+  {id:'slate',  css:'linear-gradient(135deg,#F2F3F5 0%,#E2E4E8 100%)'},
+  {id:'lilac',  css:'linear-gradient(135deg,#F8F8FF 0%,#E6E6FA 100%)'},
+  {id:'mint',   css:'linear-gradient(135deg,#EDFBF5 0%,#D4F0E7 100%)'},
+  {id:'sky',    css:'linear-gradient(135deg,#F0F7FF 0%,#D6EAF8 100%)'},
+  {id:'rose',   css:'linear-gradient(135deg,#FFF1F6 0%,#FFD9E7 100%)'}
+];
+const accentCss = id => (ACCENTS.find(a=>a.id===id) || ACCENTS[0]).css;
+
+/* ============ 默认数据 ============ */
+const SVG = {};
+SVG.tuantuan = `<svg viewBox="0 0 120 120"><ellipse cx="60" cy="75" rx="35" ry="30" fill="#FFE4B5"/><circle cx="60" cy="45" r="28" fill="#FFE4B5"/><polygon points="35,25 28,8 45,22" fill="#FFE4B5"/><polygon points="85,25 92,8 75,22" fill="#FFE4B5"/><polygon points="37,23 31,12 44,22" fill="#FFD4A8"/><polygon points="83,23 89,12 76,22" fill="#FFD4A8"/><circle cx="48" cy="42" r="6" fill="#5D4037"/><circle cx="72" cy="42" r="6" fill="#5D4037"/><circle cx="50" cy="40" r="2" fill="white"/><circle cx="74" cy="40" r="2" fill="white"/><ellipse cx="60" cy="52" rx="3" ry="2" fill="#FFB6C1"/><path d="M55,56 Q60,60 65,56" stroke="#D4A574" stroke-width="1.5" fill="none"/><ellipse cx="60" cy="20" rx="32" ry="18" fill="#FF8C00"/><circle cx="45" cy="15" r="4" fill="#8B4513"/><circle cx="75" cy="15" r="4" fill="#8B4513"/><text x="60" y="24" text-anchor="middle" font-size="10" fill="#8B4513">王</text><path d="M95,80 Q110,70 105,55" stroke="#FFE4B5" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`;
+SVG.taotao = `<svg viewBox="0 0 120 120"><ellipse cx="60" cy="80" rx="32" ry="28" fill="#FFF8DC"/><circle cx="60" cy="45" r="28" fill="#FFF8DC"/><ellipse cx="40" cy="22" rx="10" ry="12" fill="#FFF8DC"/><ellipse cx="80" cy="22" rx="10" ry="12" fill="#FFF8DC"/><ellipse cx="40" cy="22" rx="7" ry="9" fill="#FFB6C1"/><ellipse cx="80" cy="22" rx="7" ry="9" fill="#FFB6C1"/><circle cx="48" cy="42" r="7" fill="#4169E1"/><circle cx="72" cy="42" r="7" fill="#4169E1"/><circle cx="50" cy="40" r="2.5" fill="white"/><circle cx="74" cy="40" r="2.5" fill="white"/><circle cx="46" cy="44" r="1.5" fill="white"/><circle cx="70" cy="44" r="1.5" fill="white"/><ellipse cx="60" cy="52" rx="2.5" ry="2" fill="#FFB6C1"/><ellipse cx="38" cy="50" rx="6" ry="4" fill="#FFC0CB" opacity="0.6"/><ellipse cx="82" cy="50" rx="6" ry="4" fill="#FFC0CB" opacity="0.6"/><path d="M42,62 Q60,72 78,62" stroke="#FFB6C1" stroke-width="4" fill="none"/><circle cx="60" cy="68" r="5" fill="#FFD700" opacity="0.8"/><text x="60" y="71" text-anchor="middle" font-size="6" fill="#FF8C00">桃</text><path d="M92,75 Q108,65 105,50 Q103,42 98,45" stroke="#FFE4E1" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M98,45 Q95,40 98,35" stroke="#FFB6C1" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`;
+SVG.qiuqiu = `<svg viewBox="0 0 120 120"><ellipse cx="60" cy="78" rx="35" ry="28" fill="#F5DEB3"/><circle cx="60" cy="42" r="26" fill="#F5DEB3"/><ellipse cx="38" cy="28" rx="12" ry="16" fill="#DEB887" transform="rotate(-15 38 28)"/><ellipse cx="82" cy="28" rx="12" ry="16" fill="#DEB887" transform="rotate(15 82 28)"/><ellipse cx="38" cy="28" rx="8" ry="12" fill="#D2B48C" transform="rotate(-15 38 28)"/><ellipse cx="82" cy="28" rx="8" ry="12" fill="#D2B48C" transform="rotate(15 82 28)"/><path d="M55,20 L60,5 L65,20" fill="white" opacity="0.9"/><path d="M57,20 L60,12 L63,20" fill="white"/><ellipse cx="48" cy="40" rx="5" ry="6" fill="#DAA520"/><ellipse cx="72" cy="40" rx="5" ry="6" fill="#DAA520"/><circle cx="49" cy="38" r="2" fill="white"/><circle cx="73" cy="38" r="2" fill="white"/><circle cx="47" cy="42" r="1.5" fill="black"/><circle cx="71" cy="42" r="1.5" fill="black"/><ellipse cx="60" cy="50" rx="4" ry="3" fill="#2F1810"/><path d="M54,55 Q60,62 66,55" stroke="#8B7355" stroke-width="1.5" fill="none"/><path d="M38,62 Q60,75 82,62" stroke="#8B4513" stroke-width="4" fill="none"/><rect x="55" y="68" width="10" height="6" rx="3" fill="white"/><circle cx="55" cy="71" r="2.5" fill="white"/><circle cx="65" cy="71" r="2.5" fill="white"/><path d="M95,75 Q110,60 105,45 Q100,35 95,40" stroke="#F5DEB3" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M95,40 Q92,36 95,33" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`;
+SVG.daidai = `<svg viewBox="0 0 120 120"><ellipse cx="60" cy="78" rx="30" ry="26" fill="#2F2F2F"/><circle cx="60" cy="42" r="25" fill="#2F2F2F"/><polygon points="38,22 30,5 48,18" fill="#2F2F2F"/><polygon points="82,22 90,5 72,18" fill="#2F2F2F"/><polygon points="40,20 33,9 47,18" fill="#4A4A4A"/><polygon points="80,20 87,9 73,18" fill="#4A4A4A"/><ellipse cx="48" cy="40" rx="6" ry="7" fill="#50C878"/><ellipse cx="72" cy="40" rx="6" ry="7" fill="#50C878"/><ellipse cx="48" cy="40" rx="3" ry="5" fill="#1A1A1A"/><ellipse cx="72" cy="40" rx="3" ry="5" fill="#1A1A1A"/><circle cx="46" cy="37" r="2" fill="white"/><circle cx="70" cy="37" r="2" fill="white"/><polygon points="60,50 57,54 63,54" fill="#4A4A4A"/><path d="M53,56 Q60,62 67,56" stroke="#666" stroke-width="1.5" fill="none"/><circle cx="40" cy="95" r="4" fill="#FFB6C1" opacity="0.6"/><circle cx="80" cy="95" r="4" fill="#FFB6C1" opacity="0.6"/><path d="M90,70 Q105,50 100,30" stroke="#2F2F2F" stroke-width="7" fill="none" stroke-linecap="round"/></svg>`;
+SVG.tunuonuo = `<svg viewBox="0 0 120 120"><ellipse cx="60" cy="80" rx="28" ry="25" fill="white"/><circle cx="60" cy="45" r="24" fill="white"/><ellipse cx="42" cy="25" rx="10" ry="20" fill="white" transform="rotate(-10 42 25)"/><ellipse cx="42" cy="25" rx="6" ry="15" fill="#FFB6C1" transform="rotate(-10 42 25)"/><ellipse cx="78" cy="25" rx="10" ry="20" fill="white" transform="rotate(10 78 25)"/><ellipse cx="78" cy="25" rx="6" ry="15" fill="#FFB6C1" transform="rotate(10 78 25)"/><circle cx="50" cy="42" r="5" fill="#DC143C"/><circle cx="70" cy="42" r="5" fill="#DC143C"/><circle cx="51" cy="40" r="2" fill="white"/><circle cx="71" cy="40" r="2" fill="white"/><path d="M45,38 Q43,35 42,36" stroke="#333" stroke-width="1" fill="none"/><path d="M55,38 Q57,35 58,36" stroke="#333" stroke-width="1" fill="none"/><path d="M65,38 Q63,35 62,36" stroke="#333" stroke-width="1" fill="none"/><path d="M75,38 Q77,35 78,36" stroke="#333" stroke-width="1" fill="none"/><ellipse cx="60" cy="50" rx="2.5" ry="2" fill="#FFB6C1"/><path d="M55,54 L57,57 L60,54 L63,57 L65,54" stroke="#FFB6C1" stroke-width="1.5" fill="none"/><polygon points="82,18 88,12 92,20" fill="#FF8C00"/><polygon points="84,12 86,8 88,12" fill="#228B22"/><ellipse cx="90" cy="78" rx="12" ry="10" fill="#E8E8F0"/><ellipse cx="82" cy="76" rx="8" ry="7" fill="#F0F0F8"/><ellipse cx="96" cy="76" rx="8" ry="7" fill="#F0F0F8"/><ellipse cx="48" cy="95" rx="6" ry="5" fill="white"/><ellipse cx="72" cy="95" rx="6" ry="5" fill="white"/></svg>`;
+SVG.xiaoguai = `<svg viewBox="0 0 120 120"><ellipse cx="60" cy="75" rx="30" ry="26" fill="#D3D3D3"/><ellipse cx="60" cy="82" rx="20" ry="16" fill="white"/><circle cx="60" cy="42" r="24" fill="#D3D3D3"/><circle cx="40" cy="24" r="8" fill="#D3D3D3"/><circle cx="40" cy="24" r="5" fill="#FFB6C1"/><circle cx="80" cy="24" r="8" fill="#D3D3D3"/><circle cx="80" cy="24" r="5" fill="#FFB6C1"/><circle cx="48" cy="40" r="7" fill="#1A1A1A"/><circle cx="72" cy="40" r="7" fill="#1A1A1A"/><circle cx="46" cy="37" r="2.5" fill="white"/><circle cx="70" cy="37" r="2.5" fill="white"/><circle cx="50" cy="43" r="1.5" fill="white" opacity="0.5"/><circle cx="74" cy="43" r="1.5" fill="white" opacity="0.5"/><ellipse cx="60" cy="50" rx="3" ry="2" fill="#FFB6C1"/><ellipse cx="38" cy="48" rx="7" ry="5" fill="#FFC0CB" opacity="0.5"/><ellipse cx="82" cy="48" rx="7" ry="5" fill="#FFC0CB" opacity="0.5"/><path d="M58,18 Q60,8 62,18" fill="#D3D3D3"/><path d="M52,18 Q60,12 68,18 Q60,22 52,18" fill="#FFB6C1"/><circle cx="60" cy="18" r="3" fill="#FF69B4"/><ellipse cx="42" cy="92" rx="5" ry="4" fill="#FFB6C1"/><ellipse cx="78" cy="92" rx="5" ry="4" fill="#FFB6C1"/><circle cx="90" cy="80" r="5" fill="#FFB6C1"/></svg>`;
+
+const DEFAULTS = [
+  {
+    id:'tuantuan', name:'团团', selfName:'团团', gender:'男宝宝', species:'矮脚小奶猫',
+    emoji:'🐱🐯', accent:'peach', svg:'tuantuan',
+    personality:'软萌胆小\n敏感爱哭\n嘴硬逞强',
+    catchphrase:'咪咬你啦！', sound:'喵呜~ / 咪！', emojiSet:'(｡•́︿•̀｡) 🐱🐯👑🧡',
+    likes:'橘子\n躲在角落缩成团\n暖烘烘的太阳',
+    dislikes:'洗澡\n突然的大声音\n被举高高',
+    behaviors:'害怕时立刻缩成一团\n嘴上说着要咬你，其实只轻轻含一下\n睡着了会踩奶',
+    appearance:'奶油橘色短毛，圆脸大眼，四条小短腿，尾巴蓬松',
+    accessories:'虎纹小帽子，正中间绣着一个「王」字'
+  },
+  {
+    id:'taotao', name:'桃桃', selfName:'桃桃', gender:'女宝宝', species:'矮脚布偶幼猫',
+    emoji:'🍑', accent:'pink', svg:'taotao',
+    personality:'恬静温和\n天真好奇\n有点呆萌',
+    catchphrase:'喵？这是什么？', sound:'喵？/ 咪呀~', emojiSet:'🐱🍑📦✨💭',
+    likes:'桃子果汁\n钻纸箱子\n趴在窗边发呆',
+    dislikes:'打雷\n被突然抱起来\n空了的果汁盒',
+    behaviors:'看到纸箱一定要钻进去试试\n歪着头看人，一脸问号\n尾巴尖会不自觉地勾住东西',
+    appearance:'奶油白长毛，蓝色大眼睛，耳朵内侧粉粉的，脸颊带腮红',
+    accessories:'粉色小围巾 + 金色桃形挂坠'
+  },
+  {
+    id:'qiuqiu', name:'球球', selfName:'球球', gender:'男宝宝', species:'小土狗（布丁黄与白色）',
+    emoji:'🐶', accent:'honey', svg:'qiuqiu',
+    personality:'热情冒失\n忠诚护主\n憨厚馋嘴',
+    catchphrase:'给球球尝一口好不好！', sound:'汪汪！/ 嗷呜~', emojiSet:'🐶🦴⚽️🔥🐾',
+    likes:'猫粮\n摇尾巴\n被摸头',
+    dislikes:'一个人待着\n去医院\n洗澡吹风机',
+    behaviors:'一听到塑料袋响就冲过来\n尾巴摇成小螺旋桨\n护食时挡在碗前面（其实不会真咬）',
+    appearance:'布丁黄配白色，垂耳，额前一撮白毛，眼睛琥珀色，尾巴卷卷的',
+    accessories:'棕色项圈 + 白色骨头造型吊牌'
+  },
+  {
+    id:'daidai', name:'呆呆', selfName:'呆呆', gender:'男宝宝', species:'炭黑小猫',
+    emoji:'🐈⬛', accent:'slate', svg:'daidai',
+    personality:'狗系活泼\n外放直率\n精力充沛',
+    catchphrase:'喵哈哈！', sound:'喵哈哈！/ 汪！', emojiSet:'🐈⬛🥣🐾🌀💚✨',
+    likes:'酸奶\n四脚朝天打滚\n追着光点跑',
+    dislikes:'无聊\n关着的门\n被打断的午觉',
+    behaviors:'像小狗一样尾巴竖得直直的\n会主动把肚皮翻给你看\n喝酸奶必舔盒底',
+    appearance:'通体炭黑发亮，翡翠绿眼睛，尖耳朵，身形轻盈',
+    accessories:'无（天生丽质）'
+  },
+  {
+    id:'tunuonuo', name:'兔糯糯', selfName:'糯糯', gender:'女宝宝', species:'垂耳小白兔',
+    emoji:'🐰☁️', accent:'lilac', svg:'tunuonuo',
+    personality:'安静乖巧\n温柔贴心\n胆小易惊',
+    catchphrase:'叽~', sound:'叽~ / 呜叽~', emojiSet:'🐰☁️🥕🌸💕💤',
+    likes:'胡萝卜\n小云朵尾巴\n软软的垫子',
+    dislikes:'噪音\n突然的动作\n被追着跑',
+    behaviors:'开心时会小跳一下（兔子舞）\n害怕时耳朵整个盖住眼睛\n喜欢把下巴搁在你脚上',
+    appearance:'雪白长毛，垂耳，红宝石眼睛，尾巴像一小坨云',
+    accessories:'橙色小胡萝卜发夹'
+  },
+  {
+    id:'xiaoguai', name:'灰小乖', selfName:'小乖', gender:'男宝宝', species:'幼年仓鼠',
+    emoji:'🐹', accent:'mint', svg:'xiaoguai',
+    personality:'软糯沉静\n敏感胆小\n贪吃治愈',
+    catchphrase:'吱！', sound:'吱！/ 呜！', emojiSet:'🐹🌻🍿⭐🥺✨',
+    likes:'瓜子\n玩滚轮\n被温柔地 rua',
+    dislikes:'强光\n大声音\n被吵醒',
+    behaviors:'把食物塞满两颊再躲回窝\n半夜在滚轮上狂奔\n被摸舒服了会眯成一条缝',
+    appearance:'灰色圆滚滚一团，白肚皮，大黑眼睛，小圆耳，尾巴一点点',
+    accessories:'头顶粉色小蝴蝶结'
+  }
+];
+
+/* 统一补齐字段 */
+function normalize(c){
+  if(!c.slug) c.slug = c.id || '';
+  if(!Array.isArray(c.gallery)) c.gallery = [];
+  return c;
+}
+DEFAULTS.forEach(normalize);
+
+/* ============ 存储 ============ */
+const STORE_KEY = 'moe_characters_v1';
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return clone(DEFAULTS);
+    const data = JSON.parse(raw);
+    if(!Array.isArray(data) || data.length === 0) return clone(DEFAULTS);
+    return data.map(normalize);
+  }catch(e){
+    console.warn('读取本地数据失败，回退默认值', e);
+    return clone(DEFAULTS);
+  }
+}
+function save(){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(chars));
+    return true;
+  }catch(e){
+    toast('保存失败：浏览器存储空间不足或被禁用');
+    return false;
+  }
+}
+
+let chars = load();
+let editingId = null;
+let pendingAccent = 'peach';
+let repoImages = {};   // { 目录名: [图片路径...] }，来自 images/manifest.json
+const localUrls = {};  // IndexedDB 里的图片 -> objectURL
+
+/* ============ 本地图片仓库（IndexedDB） ============ */
+const DB_NAME = 'moe_pets_images';
+const DB_STORE = 'images';
+const LOCAL = 'local:';
+let _db = null;
+
+function openDB(){
+  return new Promise((resolve, reject) => {
+    if(_db) return resolve(_db);
+    let req;
+    try{ req = indexedDB.open(DB_NAME, 1); }
+    catch(e){ return reject(e); }
+    req.onupgradeneeded = () => {
+      if(!req.result.objectStoreNames.contains(DB_STORE)) req.result.createObjectStore(DB_STORE);
+    };
+    req.onsuccess = () => { _db = req.result; resolve(_db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbPut(key, val){
+  return openDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put(val, key);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  }));
+}
+function idbGet(key){
+  return openDB().then(db => new Promise((res, rej) => {
+    const req = db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get(key);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  }));
+}
+function idbDelete(key){
+  return openDB().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).delete(key);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  }));
+}
+function idbKeys(){
+  return openDB().then(db => new Promise((res, rej) => {
+    const req = db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).getAllKeys();
+    req.onsuccess = () => res(req.result || []);
+    req.onerror = () => rej(req.error);
+  }));
+}
+async function loadLocalImages(){
+  try{
+    const keys = await idbKeys();
+    for(const k of keys){
+      const blob = await idbGet(k);
+      if(blob) localUrls[k] = URL.createObjectURL(blob);
+    }
+    render();
+  }catch(e){
+    console.warn('本地图片加载失败', e);
+  }
+}
+
+/* local:key -> 可显示的 URL */
+function resolveSrc(src){
+  const s = String(src || '');
+  if(s.indexOf(LOCAL) === 0) return localUrls[s.slice(LOCAL.length)] || '';
+  return s;
+}
+
+/* ============ 工具 ============ */
+const $ = id => document.getElementById(id);
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function lines(s){
+  return String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
+}
+function val(v, ph){ return v ? esc(v) : `<span class="empty">${ph}</span>`; }
+function listHtml(s, ph){
+  const arr = lines(s);
+  if(!arr.length) return `<span class="empty">${ph}</span>`;
+  return `<ul class="list">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+}
+function tagsHtml(s){
+  const arr = lines(s);
+  if(!arr.length) return '';
+  return `<div class="tags">${arr.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>`;
+}
+/* 某只角色的全部照片：仓库目录里的（自动）+ 手动添加的 */
+function galleryOf(c){
+  const repo = (repoImages[c.slug] || []).map(src => ({src, repo:true}));
+  const manual = (c.gallery || []).map(src => ({src, repo:false}));
+  return repo.concat(manual);
+}
+
+/* 首页卡片上的缩略图条（没有照片就不显示，不留占位） */
+function thumbsHtml(c){
+  const items = galleryOf(c);
+  if(!items.length) return '';
+  const show = items.slice(0, 4);
+  const rest = items.length - show.length;
+  return `<div class="thumbs">${show.map(it =>
+    `<img class="thumb" src="${esc(resolveSrc(it.src))}" alt="" data-lb="${esc(it.src)}"
+          data-lbchar="${esc(c.id)}" data-lbdel="0"
+          onerror="this.style.display='none'">`).join('')
+  }${rest > 0 ? `<div class="thumb more" data-more="${esc(c.id)}">+${rest}</div>` : ''}</div>`;
+}
+
+/* 头像内容：优先自定义头像图，其次手绘 SVG，最后 Emoji */
+function avatarInner(c, opts){
+  opts = opts || {};
+  let inner;
+  if(c.avatarSrc && resolveSrc(c.avatarSrc)){
+    inner = `<img src="${esc(resolveSrc(c.avatarSrc))}" alt="">`;
+  }else if(c.svg && SVG[c.svg]){
+    inner = SVG[c.svg];
+  }else{
+    inner = esc(c.emoji || '🐾');
+  }
+  let btns = '';
+  if(opts.cam){
+    btns += `<button class="cam" type="button" data-cam="${esc(c.id)}" title="上传照片">📷</button>`;
+  }
+  if(opts.clear && c.avatarSrc){
+    btns += `<button class="cam clear" type="button" data-clearia="${esc(c.id)}" title="用回 Emoji 头像">✕</button>`;
+  }
+  return inner + btns;
+}
+
+let toastTimer;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ============ 渲染 ============ */
+function render(){
+  const q = ($('search').value || '').trim().toLowerCase();
+  const grid = $('grid');
+  const list = chars.filter(c => {
+    if(!q) return true;
+    return [c.name, c.selfName, c.gender, c.species, c.personality, c.catchphrase, c.likes, c.behaviors]
+      .map(x => String(x || '').toLowerCase()).join(' ').includes(q);
+  });
+
+  if(!list.length){
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#BDAE9F;padding:40px 0;">没有找到匹配的小家伙 🥺</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(c => {
+    const avatar = avatarInner(c, {cam:true});
+    const sub = [c.species, c.gender].filter(Boolean).join(' · ') || '物种未填';
+    const lk = lines(c.likes);
+    const likeTxt = lk.length ? lk.slice(0, 3).join('、') + (lk.length > 3 ? ' …' : '') : '';
+    return `
+    <div class="card" style="background:${accentCss(c.accent)}" data-id="${esc(c.id)}">
+      <button class="edit-hint" data-edit="${esc(c.id)}">详情 ✏️</button>
+      <div class="avatar" data-edit="${esc(c.id)}">${avatar}</div>
+      <h3 class="char-name">${esc(c.name || '未命名')}</h3>
+      <p class="char-sub">${esc(sub)}</p>
+      ${c.selfName ? `<p class="char-self">自称「${esc(c.selfName)}」</p>` : ''}
+      ${tagsHtml(c.personality)}
+      ${thumbsHtml(c)}
+      <div class="panel">
+        <div class="row"><span class="k">📢 口头禅</span><span class="v quote">${val(c.catchphrase, '还没说')}</span></div>
+        ${c.sound ? `<div class="row"><span class="k">🔊 叫声</span><span class="v">${esc(c.sound)}</span></div>` : ''}
+        ${c.emojiSet ? `<div class="row"><span class="k">✨ 专属</span><span class="v">${esc(c.emojiSet)}</span></div>` : ''}
+        ${likeTxt ? `<div class="row"><span class="k">❤️ 喜欢</span><span class="v">${esc(likeTxt)}</span></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-edit]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditor(el.dataset.edit);
+    });
+  });
+  grid.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => openEditor(card.dataset.id));
+  });
+  grid.querySelectorAll('[data-cam]').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); startUpload(el.dataset.cam); });
+  });
+  grid.querySelectorAll('[data-lb]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      openLightbox(el.dataset.lb, el.dataset.lbdel === '1', el.dataset.lbchar);
+    });
+  });
+  grid.querySelectorAll('[data-more]').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); openEditor(el.dataset.more); });
+  });
+}
+
+/* ============ 图像库 ============ */
+function renderGallery(){
+  const c = chars.find(x => x.id === editingId);
+  if(!c) return;
+  const dir = c.slug || c.id;
+  $('slugHint').textContent = dir;
+  const items = galleryOf(c);
+  const repoCount = items.filter(i => i.repo).length;
+
+  $('galleryGrid').innerHTML = items.length
+    ? items.map(it => `
+      <div class="g-item">
+        <img src="${esc(resolveSrc(it.src))}" alt=""
+             data-lb="${esc(it.src)}" data-lbchar="${esc(c.id)}" data-lbdel="${it.repo ? 0 : 1}"
+             onerror="this.style.opacity=.25">
+        ${c.avatarSrc === it.src ? '<span class="avatar-now">头像</span>' : ''}
+        ${it.repo
+          ? '<span class="repo-badge">仓库</span>'
+          : `<button class="g-del" type="button" data-src="${esc(it.src)}" title="移除">✕</button>`}
+      </div>`).join('')
+    : `<div style="grid-column:1/-1;color:#BDAE9F;font-size:13px;padding:4px 0 2px;">
+         还没有照片 🐾 点上面的头像上传，或把图片放进 <b>images/${esc(dir)}/</b> 推送上来。
+       </div>`;
+
+  $('galleryGrid').querySelectorAll('[data-lb]').forEach(el => {
+    el.addEventListener('click', () => openLightbox(el.dataset.lb, el.dataset.lbdel === '1', el.dataset.lbchar));
+  });
+  $('galleryGrid').querySelectorAll('[data-src]').forEach(el => {
+    el.addEventListener('click', async () => {
+      const cur = chars.find(x => x.id === editingId);
+      if(cur){ await removeImg(cur, el.dataset.src); toast('已移除'); }
+    });
+  });
+}
+
+let lbSrc = '', lbCharId = null;
+function openLightbox(src, removable, charId){
+  lbSrc = src;
+  lbCharId = charId || editingId;
+  $('lightboxImg').src = resolveSrc(src) || src;
+  $('lbRemove').style.display = removable ? '' : 'none';
+  $('lightbox').classList.add('open');
+}
+function closeLightbox(){ $('lightbox').classList.remove('open'); }
+
+/* 删掉一张图（同时清掉 IndexedDB 里的原图和头像引用） */
+async function dropLocalBlob(src){
+  if(String(src).indexOf(LOCAL) !== 0) return;
+  const k = String(src).slice(LOCAL.length);
+  try{ await idbDelete(k); }catch(e){}
+  if(localUrls[k]){ URL.revokeObjectURL(localUrls[k]); delete localUrls[k]; }
+}
+async function removeImg(c, src){
+  const idx = (c.gallery || []).indexOf(src);
+  if(idx < 0) return;
+  c.gallery.splice(idx, 1);
+  await dropLocalBlob(src);
+  if(c.avatarSrc === src) c.avatarSrc = '';
+  save();
+  if(editingId === c.id) renderGallery();
+  render();
+}
+
+/* 从头像上传照片 */
+let uploadTargetId = null;
+function startUpload(id){
+  uploadTargetId = id;
+  $('avatarInput').value = '';
+  $('avatarInput').click();
+}
+async function handleUpload(files){
+  const c = chars.find(x => x.id === uploadTargetId);
+  if(!c || !files || !files.length) return;
+  const imgs = [...files].filter(f => f.type && f.type.indexOf('image/') === 0);
+  if(!imgs.length){ toast('这不是图片文件 🐾'); return; }
+  let n = 0;
+  for(const f of imgs){
+    const key = (c.slug || c.id) + '/' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6) + '_' + f.name;
+    try{
+      await idbPut(key, f);
+      localUrls[key] = URL.createObjectURL(f);
+      c.gallery.push(LOCAL + key);
+      if(!c.avatarSrc) c.avatarSrc = LOCAL + key;   // 第一张自动当头像
+      n++;
+    }catch(e){
+      toast('保存失败：' + (e && e.message ? e.message : '未知错误'));
+    }
+  }
+  save();
+  if(editingId === c.id) renderGallery();
+  render();
+  if(n) toast('已上传 ' + n + ' 张 📷');
+}
+
+async function loadManifest(){
+  try{
+    const res = await fetch('images/manifest.json', {cache:'no-store'});
+    if(!res.ok) return;
+    const data = await res.json();
+    if(data && typeof data === 'object'){ repoImages = data; render(); }
+  }catch(e){
+    /* 本地 file:// 打开或还没有清单文件时忽略 */
+  }
+}
+
+/* ============ 编辑器 ============ */
+const FIELDS = ['name','selfName','gender','species','emoji','personality',
+                'catchphrase','sound','emojiSet','likes','dislikes',
+                'behaviors','appearance','accessories','slug'];
+
+function buildSwatches(){
+  $('swatches').innerHTML = ACCENTS.map(a =>
+    `<div class="swatch${a.id === pendingAccent ? ' sel' : ''}" data-accent="${a.id}"
+          style="background:${a.css}" title="${a.id}"></div>`).join('');
+  $('swatches').querySelectorAll('.swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      pendingAccent = sw.dataset.accent;
+      $('swatches').querySelectorAll('.swatch').forEach(x => x.classList.remove('sel'));
+      sw.classList.add('sel');
+    });
+  });
+}
+
+function openEditor(id){
+  const c = chars.find(x => x.id === id);
+  if(!c) return;
+  editingId = id;
+  $('modalTitle').textContent = c.name || '未命名';
+  $('modalAvatar').innerHTML = avatarInner(c, {cam:true, clear:true});
+  FIELDS.forEach(f => { const el = $('f_' + f); if(el) el.value = c[f] || ''; });
+  pendingAccent = c.accent || 'peach';
+  buildSwatches();
+  renderGallery();
+  $('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => $('f_name').focus(), 60);
+}
+function closeEditor(){
+  $('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  editingId = null;
+}
+function saveEditor(){
+  const c = chars.find(x => x.id === editingId);
+  if(!c) return;
+  FIELDS.forEach(f => { const el = $('f_' + f); if(el) c[f] = el.value.trim(); });
+  c.accent = pendingAccent;
+  if(save()) toast('已保存 🐾');
+  render();
+  closeEditor();
+}
+
+/* ============ 事件 ============ */
+$('btnAdd').addEventListener('click', () => {
+  const c = {
+    id: 'c_' + Date.now().toString(36),
+    name:'新角色', selfName:'', gender:'', species:'',
+    emoji:'🐾', accent: ACCENTS[chars.length % ACCENTS.length].id, svg:'',
+    slug:'', gallery:[],
+    personality:'', catchphrase:'', sound:'', emojiSet:'',
+    likes:'', dislikes:'', behaviors:'', appearance:'', accessories:''
+  };
+  c.slug = c.id;
+  chars.push(c);
+  save();
+  render();
+  openEditor(c.id);
+});
+
+$('btnDelete').addEventListener('click', () => {
+  const c = chars.find(x => x.id === editingId);
+  if(!c) return;
+  if(!confirm(`确定要删除「${c.name || '未命名'}」吗？此操作不可撤销。`)) return;
+  chars = chars.filter(x => x.id !== editingId);
+  save();
+  render();
+  closeEditor();
+  toast('已删除');
+});
+
+$('btnSave').addEventListener('click', saveEditor);
+$('btnCancel').addEventListener('click', closeEditor);
+$('btnClose').addEventListener('click', closeEditor);
+$('overlay').addEventListener('click', e => { if(e.target === $('overlay')) closeEditor(); });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    if($('lightbox').classList.contains('open')) closeLightbox();
+    else if($('overlay').classList.contains('open')) closeEditor();
+  }
+  if((e.ctrlKey || e.metaKey) && e.key === 's' && $('overlay').classList.contains('open')){
+    e.preventDefault(); saveEditor();
+  }
+});
+
+// 图像库：添加 / 放大 / 目录名提示
+function addImg(){
+  const v = $('gInput').value.trim();
+  if(!v) return;
+  const c = chars.find(x => x.id === editingId);
+  if(!c) return;
+  c.gallery.push(v);
+  $('gInput').value = '';
+  save(); renderGallery(); render();
+  toast('已添加 🖼');
+}
+$('btnAddImg').addEventListener('click', addImg);
+$('gInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); addImg(); }
+});
+$('lightbox').addEventListener('click', closeLightbox);
+$('lbClose').addEventListener('click', closeLightbox);
+$('f_slug').addEventListener('input', e => {
+  $('slugHint').textContent = e.target.value || '—';
+});
+
+// 头像上传
+$('avatarInput').addEventListener('change', e => {
+  handleUpload(e.target.files);
+  e.target.value = '';
+});
+$('modalAvatar').addEventListener('click', e => {
+  const clearBtn = e.target.closest('[data-clearia]');
+  if(clearBtn){
+    const c = chars.find(x => x.id === clearBtn.dataset.clearia);
+    if(c){
+      c.avatarSrc = '';
+      save(); renderGallery(); render();
+      $('modalAvatar').innerHTML = avatarInner(c, {cam:true, clear:true});
+      toast('已用回 Emoji 头像');
+    }
+    return;
+  }
+  if(editingId) startUpload(editingId);
+});
+
+// 大图：设为头像 / 删除
+$('lbSetAvatar').addEventListener('click', e => {
+  e.stopPropagation();
+  const c = chars.find(x => x.id === lbCharId);
+  if(!c) return;
+  c.avatarSrc = lbSrc;
+  save();
+  render();
+  if(editingId === c.id){
+    renderGallery();
+    $('modalAvatar').innerHTML = avatarInner(c, {cam:true, clear:true});
+  }
+  closeLightbox();
+  toast('头像已更新 🌟');
+});
+$('lbRemove').addEventListener('click', async e => {
+  e.stopPropagation();
+  const c = chars.find(x => x.id === lbCharId);
+  if(!c) return;
+  await removeImg(c, lbSrc);
+  if(editingId === c.id) $('modalAvatar').innerHTML = avatarInner(c, {cam:true, clear:true});
+  closeLightbox();
+  toast('已删除');
+});
+
+$('search').addEventListener('input', render);
+
+// 输入时实时预览标题与头像
+$('f_name').addEventListener('input', e => { $('modalTitle').textContent = e.target.value || '未命名'; });
+$('f_emoji').addEventListener('input', e => { $('modalAvatar').textContent = e.target.value || '🐾'; });
+
+$('btnExport').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(chars, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'moe_characters.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('已导出 JSON');
+});
+
+$('btnImport').addEventListener('click', () => $('fileInput').click());
+$('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(!Array.isArray(data)) throw new Error('格式不是数组');
+      if(!confirm(`即将导入 ${data.length} 只角色，会覆盖当前全部数据，继续吗？`)) return;
+      chars = data.map(c => normalize(Object.assign({id:'c_'+Math.random().toString(36).slice(2,8)}, c)));
+      save(); render(); toast('导入成功');
+    }catch(err){
+      alert('导入失败：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+$('btnReset').addEventListener('click', () => {
+  if(!confirm('恢复为初始的六只小家伙？你现在的修改会被覆盖。')) return;
+  chars = clone(DEFAULTS);
+  save(); render(); toast('已恢复默认');
+});
+
+render();
+loadManifest();
+loadLocalImages();
+</script>
+</body>
+</html>
